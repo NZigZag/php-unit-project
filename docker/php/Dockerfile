@@ -19,12 +19,14 @@ RUN apt-get update \
     vim \
     unzip \
     git \
-    curl
+    curl \
+    && pecl install xdebug
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install extensions
+RUN docker-php-ext-enable xdebug
 RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring zip exif pcntl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
