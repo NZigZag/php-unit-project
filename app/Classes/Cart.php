@@ -12,8 +12,11 @@ class Cart
             throw new \Exception("The product doesn't exist");
         }
 
+        // До этого у меня был метод для проверки существования продукта в корзине (existProductInCart),
+        // но я решил его удалить и юзать getProductInCartById, который возвращает продукт или null
         $product = $this->getProductInCartById($productId);
 
+        // Думаю, что тут можно лучше логику организовать. Чет уже начал тупить под конец=)
         if ($product) {
             $this->products[$productId]['count'] = ++$this->products[$productId]['count'];
         } else {
@@ -35,6 +38,7 @@ class Cart
 
     public function getProductInCartById(int $productId): ?array
     {
+        // может тут лучше array_map?
         foreach ($this->getCart() as $product) {
             if ($product['id'] === $productId) {
                 return $product;
