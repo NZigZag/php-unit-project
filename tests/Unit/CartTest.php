@@ -14,46 +14,80 @@ class CartTest extends TestCase
         parent::setUp();
 
         $this->cart = new Cart;
-        $this->cart->addProduct(1);
-        $this->cart->addProduct(2);
-        $this->cart->addProduct(3);
     }
 
-    /** @test */
-    public function cart_model_exists()
+    public function testCartClassExists()
     {
         $this->assertTrue(true);
     }
 
-    /** @test */
-    public function add_product_to_cart()
+    public function testAddProductsToCart()
     {
-        $this->assertEquals(true, $this->cart->productExists(1));
-        $this->assertEquals(true, $this->cart->productExists(2));
-        $this->assertEquals(true, $this->cart->productExists(3));
+        $ids = [1, 3, 4, 5, 3, 4, 4];
+        $this->fillCart($ids);
+
+        $this->assertSame(array_unique($ids), $this->cart->getProductsInCart());
     }
 
-    /** @test */
-    public function check_count_products_in_cart()
+    public function testFailedWhenAddNonExistentProductToCart()
     {
-        $this->assertEquals(3, $this->cart->count());
+        $ids = [1, 3, 1, 3, 4, 5, 6];
+
+        $this->expectExceptionMessage("The product doesn't exist");
+        $this->fillCart($ids);
     }
 
-    /** @test */
-    public function remove_products_from_cart()
+    public function testCheckCountProductsInCart()
     {
-        $this->cart->removeProduct(2);
-        $this->cart->removeProduct(3);
+        $ids = [1, 3, 4, 5, 3, 3, 5];
+        $this->fillCart($ids);
 
-        $this->assertEquals(1, $this->cart->count());
-        $this->assertEquals(true, $this->cart->productExists(1));
+        $this->assertEquals(count($ids), $this->cart->getCountProductsInCart());
     }
 
-    /** @test */
-    public function clean_cart()
+    public function testCheckCountInCartByProduct()
     {
-        $this->cart->clean();
+        $testingProductId = 3;
+        $ids = [1, $testingProductId, 4, 5, $testingProductId, $testingProductId, 5];
+        $this->fillCart($ids);
 
-        $this->assertEquals(0, $this->cart->count());
+        $this->assertEquals(
+            array_count_values($ids)[$testingProductId],
+            $this->cart->getProductCountInCartById($testingProductId)
+        );
+    }
+
+    public function testRemoveProductFromCart()
+    {
+        $testingProductId = 3;
+        $ids = [1, $testingProductId, 4, 5, $testingProductId, $testingProductId, 5];
+        $this->fillCart($ids);
+
+        $this->cart->removeProduct($testingProductId);
+
+        $this->assertEquals(4, $this->cart->getCountProductsInCart());
+        $this->assertEquals([1, 4, 5], $this->cart->getProductsInCart());
+        $this->assertEquals(null, $this->cart->getProductInCartById($testingProductId));
+    }
+
+    public function testCleanCart()
+    {
+        $ids = [1, 3, 4, 5, 3, 4, 4];
+        $this->fillCart($ids);
+
+        $this->cart->cleanCart();
+
+        $this->assertEquals(0, $this->cart->getCountProductsInCart());
+        $this->assertEquals([], $this->cart->getProductsInCart());
+    }
+
+    /**
+     * Filling our cart
+     */
+    protected function fillCart(array $productIds): void
+    {
+        foreach ($productIds as $id) {
+            $this->cart->addProduct($id);
+        }
     }
 }
