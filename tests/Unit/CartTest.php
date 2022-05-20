@@ -5,6 +5,8 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use App\Classes\Cart;
 
+// Пропустил тест на декримент продукта (Product_1) из корзины (нужен он)???
+// Например, Product_1 в корзине 3 шт., мы нажимаем '-' напротив этого продукта и теперь Product_1 2 шт.
 class CartTest extends TestCase
 {
     protected Cart $cart;
