@@ -2,9 +2,33 @@
 
 namespace App\Classes;
 
+use JetBrains\PhpStorm\ArrayShape;
+
 class Cart
 {
     protected array $products = [];
+
+    #[ArrayShape(['status' => "bool", 'message' => "string"])]
+    public function addProducts(array $productIds): array
+    {
+        $statusResponse = true;
+        $messageResponse = 'The products have been added successfully';
+
+        try {
+            foreach ($productIds as $id) {
+                $this->addProduct($id);
+            }
+        } catch (\Exception $exception) {
+            $this->cleanCart();
+            $statusResponse = false;
+            $messageResponse = $exception->getMessage();
+        }
+
+        return [
+            'status' => $statusResponse,
+            'message' => $messageResponse,
+        ];
+    }
 
     public function addProduct(int $productId): bool
     {
@@ -12,40 +36,28 @@ class Cart
             throw new \Exception("The product doesn't exist");
         }
 
-        // До этого у меня был метод для проверки существования продукта в корзине (existProductInCart),
-        // но я решил его удалить и юзать getProductInCartById, который возвращает продукт или null
-        $product = $this->getProductInCartById($productId);
-
-        // Думаю, что тут можно лучше логику организовать. Чет уже начал тупить под конец=)
-        if ($product) {
-            $this->products[$productId]['count'] = ++$this->products[$productId]['count'];
-        } else {
-            $this->products[$productId] = [
-                'id' => $productId,
-                'count' => 1,
-            ];
-        }
+        $this->incrementProduct($productId);
 
         return true;
     }
 
     public function getProductCountInCartById(int $productId): int
     {
-        $product = $this->getProductInCartById($productId);
+        $product = $this->getItem($productId);
 
         return $product['count'] ?? 0;
     }
 
-    public function getProductInCartById(int $productId): ?array
+    public function getItem(int $id): ?array
     {
-        // может тут лучше array_map?
-        foreach ($this->getCart() as $product) {
-            if ($product['id'] === $productId) {
-                return $product;
-            }
-        }
+        return array_key_exists($id, $this->products)
+            ? $this->products[$id]
+            : null;
+    }
 
-        return null;
+    public function setItem(array $data): void
+    {
+        $this->products[$data['id']] = $data;
     }
 
     public function getCountProductsInCart(): int
@@ -73,11 +85,46 @@ class Cart
         return $this->products;
     }
 
-    public function removeProduct(int $productID): void
+    public function removeProduct(int $productId): void
     {
-        if (array_key_exists($productID, $this->products)) {
-            unset($this->products[$productID]);
+        if (array_key_exists($productId, $this->products)) {
+            unset($this->products[$productId]);
         }
+    }
+
+    public function incrementProduct(int $productId, int $amount = 1): void
+    {
+        $product = $this->getItem($productId);
+        $this->setItem([
+            'id' => $productId,
+            'count' => null !== $product
+                ? $product['count'] + $amount
+                : $amount,
+        ]);
+    }
+
+    public function decrementProduct(int $productId): bool
+    {
+        $product = $this->getItem($productId);
+
+        if (null === $product) {
+            return false;
+        }
+
+        $count = $product['count'] - 1;
+
+        if ($count < 1) {
+            $this->removeProduct($productId);
+
+            return true;
+        }
+
+        $this->setItem([
+            'id' => $productId,
+            'count' => $count,
+        ]);
+
+        return true;
     }
 
     public function cleanCart(): void
