@@ -2,10 +2,13 @@
 
 namespace App\Classes;
 
+use Illuminate\Support\Facades\Session;
 use JetBrains\PhpStorm\ArrayShape;
 
 class Cart
 {
+    const CART_SESSION_KEY = 'my-cart';
+
     protected array $products = [];
 
     #[ArrayShape(['status' => "bool", 'message' => "string"])]
@@ -58,6 +61,7 @@ class Cart
     public function setItem(array $data): void
     {
         $this->products[$data['id']] = $data;
+        Session::put(self::CART_SESSION_KEY, $this->products);
     }
 
     public function getCountProductsInCart(): int
@@ -89,6 +93,7 @@ class Cart
     {
         if (array_key_exists($productId, $this->products)) {
             unset($this->products[$productId]);
+            Session::put(self::CART_SESSION_KEY, $this->products);
         }
     }
 
@@ -130,5 +135,6 @@ class Cart
     public function cleanCart(): void
     {
         $this->products = [];
+        Session::forget(self::CART_SESSION_KEY);
     }
 }

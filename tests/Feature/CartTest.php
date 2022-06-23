@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature;
 
-use JetBrains\PhpStorm\ArrayShape;
-use PHPUnit\Framework\TestCase;
 use App\Classes\Cart;
+use JetBrains\PhpStorm\ArrayShape;
+use Tests\TestCase;
 
 class CartTest extends TestCase
 {
